@@ -18,15 +18,21 @@ class EmbeddingRetriever:
         outputs = model(tokenized_outputs["tokenized_sentence"]["input_ids"])
         # Save these hidden states separately
         self.hidden_states = outputs.hidden_states
+        self.attentions = outputs.attentions
     
     # Get a hidden state for a specific word (by word index)
     # sentence_index: int, index for a sentence
     # word_index: int, spaCy index for a word!
     # layers: for which layers should we retrieve the hidden states?
-    def get_hidden_state(self, sentence_index, word_index, layers):
+    def get_hidden_state(self, sentence_index, word_index, layers, heads=None):
         # You can ask for hidden states over multiple layers
         if not type(layers) == list:
             raise Exception("Layers arguments should be a list")
+            
+        if 0 in layers and heads is not None:
+            raise Exception("Attention is not available for embedding layer 0. " +
+                            "Please excluse layer 0 from your layer selection if " +
+                            "you want to use attention-based weighting.")
         
         # Compute layer vectors a specific word_index
         # We save all word vectors of each layer in the following list:
@@ -55,8 +61,19 @@ class EmbeddingRetriever:
                           
             # We turn the list of word pieces into a two-dimensional matrix...
             word_piece_vectors = np.array(word_piece_vectors)
+            
+            # These weights will be used when averaging the word piece vectors
+            # If attention is not defined, we don't use any custom weights when averaging
+            weights = None
+            
+            # If the attention heads are defined, it means we don't just take the regular average
+            # to piece together a vector for this word.
+            # Rather, we use the attention values to make a *weighted* average
+            if heads is not None:
+                weights = self.get_attention_weights(sentence_index, word_index, layer_index, heads)
+            
             # ...and average columnwise, so we get one average vector for this word
-            word_vector = np.average(word_piece_vectors, 0)
+            word_vector = np.average(word_piece_vectors, 0, weights=weights)
             # Then, we add the vector to the list of word vectors across layers
             layer_vectors.append(word_vector)
         
@@ -66,3 +83,61 @@ class EmbeddingRetriever:
         layer_average = np.average(layer_vectors, 0)
         
         return layer_average
+    
+    def get_attention_weights(self, sentence_index, word_index, layer_index, heads):
+        # We store the attention weights across heads here
+        heads_attention_weights = [] 
+        for head_index in heads:
+            # We store the attention weights for word pieces here
+            wordpieces_attention_weights = []
+            for wordpiece_index in self.correspondence[sentence_index][word_index]:
+                # How are attention weights structured?
+                # attentions = tuple
+                # every item in the tuple = attention for one layer => length of tuple = 12
+                # /!\ attention (haha): hidden_states[1] has attentions[0]
+                # hidden_states[0] has no attention (this is the embedding layer)
+
+                # each tuple item has the following shape:
+                # dim 1: sentence index
+                # dim 2: attention head index
+                # dim 3: word piece index
+                # dim 4: word piece index (for the attention distribution)
+                        
+                # This "attention slice" is the attention range over ALL word pieces, FOR THIS PIECE ONLY
+                # It also only applies to THIS HEAD ONLY, and FOR THIS LAYER ONLY
+                attention_slice = self.attentions[layer_index - 1][sentence_index][head_index][wordpiece_index].tolist()
+                # We are only interested in the attention range between the wordpieces of our word
+                slice_begin = self.correspondence[sentence_index][word_index][0]
+                slice_end = self.correspondence[sentence_index][word_index][-1] + 1 # slice excludes the final index
+                attention_slice = attention_slice[slice_begin:slice_end]
+                        
+                # We add the attention slice to the list 
+                wordpieces_attention_weights.append(attention_slice)
+                    
+            # We now have all attention slices for this head for this word
+            # For each word piece belonging to this word, we know how important it finds itself, and the other pieces
+                    
+            # We turn the list of attention weights for word pieces into a two-dimensional matrix...
+            wordpieces_attention_weights = np.array(wordpieces_attention_weights)
+            # ...and average columnwise, so we get one average attention weight distribution for this head
+            head_attention_weights = np.average(wordpieces_attention_weights, 0)
+            # Now, make the weights sum to one
+            head_attention_weights = head_attention_weights / head_attention_weights.sum(axis=0, keepdims=True)
+            # Finally, add these weights to the list of attention heads requested
+            heads_attention_weights.append(head_attention_weights)
+                
+        # We now have all attention weights for all heads for this word
+        # For each head, we now know the attention distribution among the word pieces
+                
+        # We turn the list of attention weights for all heads into a two-dimensional matrix...
+        heads_attention_weights = np.array(heads_attention_weights)
+        # ...and average columnwise, so we get one average attention distribution across all heads for our word pieces
+        # We don't weight the attention heads (yet?), so we just average the different heads
+        heads_attention_weights = np.average(heads_attention_weights, 0)
+        # Now, make the weights sum to one
+        heads_attention_weights = heads_attention_weights / heads_attention_weights.sum(axis=0, keepdims=True)
+                
+        # All done!
+        weights = heads_attention_weights.tolist()
+        
+        return weights
