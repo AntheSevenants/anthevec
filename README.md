@@ -3,7 +3,7 @@ A Python library to get word-level vectors from BERT-like transformer models
 
 ## What is anthevec?
 
-For NLP applications or linguistic research, it is useful to represent words as continuous vectors. Continuous vector representations allow for (pseudo) semantic generalisation across vectors, and is favoured over one-hot encoding.
+For NLP applications or linguistic research, it is useful to represent words as continuous vectors. Continuous vector representations allow for (pseudo) semantic generalisation across vectors, and are favoured over one-hot encoding.
 
 One source of such vectors can be BERT transformer models. Through a series of language modelling tasks, pieces of words get assigned continuous vector representations, which in BERT models are even further adapted to the context of the sentence in which the word pieces occur (so-called "contextualisation"). Notice, however, that BERT transformer models operate on the level of the *word piece*, not on the level of the word. Word pieces are great for generalisation across words, and thus for language modelling performance, but they do make it hard to ask for a vector of a specific word (since what we humans see as a word can actually consist of different pieces with their own vectors in BERT).
 
