@@ -88,9 +88,9 @@ layers = [11, 12]
 heads = [0, 1, 2, 3]
 
 hidden_state = embedding_retriever.get_hidden_state(sentence_index,
-													token_index,
-													layers,
-													heads=heads)
+                                                    token_index,
+                                                    layers,
+                                                    heads=heads)
 ```
 
 Tip: you can find out the spaCy tokenisation by using the `embedding_retriever.tokens` property. This property contains a list of all spaCy tokens, the indices of which are interesting for use in the `get_hidden_state()` method. You should refer to the [spaCy documentation for the Token type](https://spacy.io/api/token) for more information, but the snippet below shows how to use the list of tokens to find the index of a specific word in the token list:
