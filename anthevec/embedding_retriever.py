@@ -1,5 +1,5 @@
 import numpy as np
-from anthevec.friendly_tokenizer import FriendlyTokenizer
+from .friendly_tokenizer import FriendlyTokenizer
 
 # EmbeddingRetriever holds all embeddings for a given sentence
 class EmbeddingRetriever:
