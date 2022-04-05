@@ -81,7 +81,7 @@ class FriendlyTokenizer:
                     
                 # Edge case
                 #print(char_span.end)
-                if char_span.end == len(input_strings[sentence_id]):
+                if char_span.end == len(tokenizer_input_strings[sentence_id]):
                     break
 
                 token_id += 1
