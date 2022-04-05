@@ -63,9 +63,14 @@ First, create a new EmbeddingRetriever. It takes four arguments:
 - your HuggingFace transformers fast tokeniser
 - your spaCy tokeniser
 - a list of sentences of which you want to get word-level vectors
+	- in case your input is already tokenised, you can supply this pre-tokenised input as a list
 
 ```python
+# Non-tokenised input
 embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ "Il gatto beve", "Le gatte bevono" ])
+
+# Tokenised input
+embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ ["Il", "gatto", "beve"], ["Le", "gatte", "bevono"] ])
 ```
 
 To get the hidden state of a specific word, use the `get_hidden_state()` method. It takes four arguments:
