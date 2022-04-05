@@ -31,6 +31,7 @@ You should generally only interact with EmbeddingRetriever. EmbeddingRetriever u
 Before using EmbeddingRetriever, you should have initialised the following three objects which will be passed as parameters:
 
 - a HuggingFace transformers model object **with hidden state output**
+	- if you want to use attention weighting, attention output should also be enabled!
 - a HuggingFace transformers **fast** tokeniser
 - a spaCy tokeniser
 
@@ -43,10 +44,10 @@ from transformers import AutoTokenizer, AutoModel, AutoConfig
 MODEL_NAME = "m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-config = AutoConfig.from_pretrained(MODEL_NAME, output_hidden_states=True)
+config = AutoConfig.from_pretrained(MODEL_NAME, output_hidden_states=True, output_attentions=True)
 bert_model = AutoModel.from_pretrained(MODEL_NAME, config=config)
 ```
-The snippet initialises a fast tokeniser for an Italian BERT model, and also creates a model object which will output hidden states (`output_hidden_states=True`).
+The snippet initialises a fast tokeniser for an Italian BERT model, and also creates a model object which will output hidden states (`output_hidden_states=True`) and attention weights (`output_attentions=True`).
 
 To correctly initialise your spaCy tokeniser, refer to the following snippet:
 ```python
