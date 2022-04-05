@@ -1,3 +1,5 @@
+from spacy.tokens import Doc
+
 class FriendlyTokenizer:
     def __init__(self, tokenizer, nlp):
         self.tokenizer = tokenizer # the BERT wordpiece tokeniser
@@ -7,9 +9,21 @@ class FriendlyTokenizer:
     def tokenize(self, input_strings):        
         if not type(input_strings) is list:
             raise Exception("Tokenizer input should be a list")
+
+        # It's easiest to just piece together pre-tokenised strings
+        # We can pass them as-is with a special parameter, but it leads to issues
+        tokenizer_input_strings = []
+        if type(input_strings[0]) == list:
+            # If the first item is a list, we just join all the list items
+            # And then we add these items to the tokenizer input strings
+            for sentence_list in input_strings:
+                tokenizer_input_strings.append(" ".join(sentence_list))
+        elif type(input_strings[0] == str):
+            # If the first item is a string, we just use the input as-is
+            tokenizer_input_strings = input_strings
         
         # First, tokenize the string as normal using the supplied tokenizer
-        tokenized_output = self.tokenizer(input_strings, return_tensors='pt', padding=True)
+        tokenized_output = self.tokenizer(tokenizer_input_strings, return_tensors='pt', padding=True)
                 
         # Will hold all correspondences per sentence
         correspondence_list = []
@@ -22,9 +36,20 @@ class FriendlyTokenizer:
             correspondence = {}
             
             spacy_tokens = []
-            # Flatten the sentence structure
-            for sentence in self.nlp(input_strings[sentence_id]).sents:
-                spacy_tokens += sentence
+
+            if type(input_strings[sentence_id]) == str:
+                doc = self.nlp(input_strings[sentence_id])
+
+                # Flatten the sentence structure
+                for sentence in doc.sents:
+                    spacy_tokens += sentence
+            elif type(input_strings[sentence_id]) == list:
+                doc = Doc(self.nlp.vocab, input_strings[sentence_id])
+
+                for token in doc:
+                    spacy_tokens.append(token)
+            else:
+                raise TypeError("Sentences must be of type str or list")
                 
             spacy_tokens_list.append(spacy_tokens)
 
