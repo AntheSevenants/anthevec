@@ -1,4 +1,4 @@
-from spacy.tokens import Doc
+from .pre_tokenizer import PreTokenizer
 
 class FriendlyTokenizer:
     def __init__(self, tokenizer, nlp):
@@ -37,19 +37,14 @@ class FriendlyTokenizer:
             
             spacy_tokens = []
 
-            if type(input_strings[sentence_id]) == str:
-                doc = self.nlp(input_strings[sentence_id])
+            if type(input_strings[sentence_id]) == list:
+                self.nlp.tokenizer = PreTokenizer(self.nlp.vocab)
 
-                # Flatten the sentence structure
-                for sentence in doc.sents:
-                    spacy_tokens += sentence
-            elif type(input_strings[sentence_id]) == list:
-                doc = Doc(self.nlp.vocab, input_strings[sentence_id])
+            doc = self.nlp(input_strings[sentence_id])
 
-                for token in doc:
-                    spacy_tokens.append(token)
-            else:
-                raise TypeError("Sentences must be of type str or list")
+            # Flatten the sentence structure
+            for sentence in doc.sents:
+                spacy_tokens += sentence
                 
             spacy_tokens_list.append(spacy_tokens)
 
