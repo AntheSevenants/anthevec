@@ -15,10 +15,14 @@ class EmbeddingRetriever:
         self.tokens = tokenized_outputs["spacy_tokens"]
 
         # Input ids need to be saved in case we want to get the raw token embeddings
-        self.token_ids = tokenized_outputs["tokenized_sentence"]["input_ids"]
+        self.input_ids = tokenized_outputs["tokenized_sentence"]["input_ids"]
+
+        # Pre-save the token embeddings (maybe we need them at some point)
+        embedding_matrix = model.get_input_embeddings()
+        self.token_embeddings = embedding_matrix(self.input_ids).detach().numpy()
 
         # Compute the hidden states
-        outputs = model(self.token_ids)
+        outputs = model(self.input_ids)
         # Save these hidden states separately
         self.hidden_states = outputs.hidden_states
         self.attentions = outputs.attentions
@@ -144,3 +148,20 @@ class EmbeddingRetriever:
         weights = heads_attention_weights.tolist()
         
         return weights
+
+    def get_token_embedding(self, sentence_index, word_index):
+        word_piece_vectors = []
+
+        # For each of the word pieces of which this word consists...
+        for wordpiece_index in self.correspondence[sentence_index][word_index]:
+            # Define the token embedding...
+            word_piece_vector = self.token_embeddings[sentence_index][wordpiece_index]
+            # ...and add it to the list of word pieces for this word
+            word_piece_vectors.append(word_piece_vector)
+              
+        # We turn the list of word pieces into a two-dimensional matrix...
+        word_piece_vectors = np.array(word_piece_vectors)
+        # ...and average columnwise, so we get one average vector for this word
+        word_vector = np.average(word_piece_vectors, 0)
+
+        return word_vector
