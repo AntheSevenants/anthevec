@@ -13,9 +13,12 @@ class EmbeddingRetriever:
         self.correspondence = tokenized_outputs["correspondence"]
         # Save tokens
         self.tokens = tokenized_outputs["spacy_tokens"]
-        
+
+        # Input ids need to be saved in case we want to get the raw token embeddings
+        self.token_ids = tokenized_outputs["tokenized_sentence"]["input_ids"]
+
         # Compute the hidden states
-        outputs = model(tokenized_outputs["tokenized_sentence"]["input_ids"])
+        outputs = model(self.token_ids)
         # Save these hidden states separately
         self.hidden_states = outputs.hidden_states
         self.attentions = outputs.attentions
