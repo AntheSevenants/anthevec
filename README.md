@@ -9,7 +9,7 @@ One source of such vectors can be BERT transformer models. Through a series of l
 
 To solve this issue, I designed two small libraries: *FriendlyTokenizer* and *EmbeddingRetriever*, both part of the `anthevec` package (for lack of a better name). FriendlyTokenizer is a wrapper around the BERT model tokeniser, which complements this tokeniser with a spaCy tokeniser. The spaCy tokeniser is used to create a "human" tokenisation (on the word level, as we generally expect). Then, the FriendlyTokenizer wrapper matches the BERT word pieces with the tokenisation done by spaCy. This is possible because the [HuggingFace transformers library](https://huggingface.co/docs/transformers/index) provides the span range to which each word piece corresponds.
 
-EmbeddingRetriever uses FriendlyTokenizer's correspondence between words and word pieces to piece together a vector from the different word pieces of which a word consists. To create this single vector, the average of all the word pieces is taken, or a combination of attention weights is used to create a weighted average. It is also possible to ask for the vector on a specific layer, or to take an average across multiple layers.
+EmbeddingRetriever uses FriendlyTokenizer's correspondence between words and word pieces to piece together a vector from the different word pieces of which a word consists. To create this single vector, the average of all the word pieces is taken, or a combination of attention weights is used to create a weighted average. It is also possible to ask for the vector on a specific layer, or to take an average across multiple layers. You can also retrieve the [*token* embedding](https://anthe.sevenants.net/post/bert-token-embeddings) (the vector [without position or segment information](https://anthe.sevenants.net/post/bert-static-embeddings)) for a specific word.
 
 Note: The [*token\_to\_chars*](https://huggingface.co/docs/transformers/main_classes/tokenizer\#transformers.BatchEncoding.token_to_chars) method, which these libraries use, is only available for models which have a "fast" tokeniser. This limits the applicability of FriendlyTokenizer to only those models which have a fast tokeniser available. Fast tokenisers are written in Rust, while non-fast tokenisers are purely Pythonic.
 
@@ -97,6 +97,19 @@ hidden_state = embedding_retriever.get_hidden_state(sentence_index,
                                                     token_index,
                                                     layers,
                                                     heads=heads)
+```
+
+To get the token embedding of a specific word ("raw word embedding"), use the `get_token_embedding()` method. It takes two arguments:
+
+- the index of the sentence (for "Le gatte bevono", we would enter `1`)
+- the index of the spaCy token (for "bevono", we would enter `2`)
+
+```python
+sentence_index = 1
+token_index = 2
+
+token_embedding = embedding_retriever.get_token_embedding(sentence_index,
+                                                          token_index)
 ```
 
 Tip: you can find out the spaCy tokenisation by using the `embedding_retriever.tokens` property. This property contains a list of all spaCy tokens, the indices of which are interesting for use in the `get_hidden_state()` method. You should refer to the [spaCy documentation for the Token type](https://spacy.io/api/token) for more information, but the snippet below shows how to use the list of tokens to find the index of a specific word in the token list:
