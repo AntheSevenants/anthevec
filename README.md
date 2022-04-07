@@ -74,6 +74,8 @@ embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ "Il gatto
 embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ ["Il", "gatto", "beve"], ["Le", "gatte", "bevono"] ])
 ```
 
+### Retrieving a hidden state
+
 To get the hidden state of a specific word, use the `get_hidden_state()` method. It takes four arguments:
 
 - the index of the sentence (for "Le gatte bevono", we would enter `1`)
@@ -99,6 +101,8 @@ hidden_state = embedding_retriever.get_hidden_state(sentence_index,
                                                     heads=heads)
 ```
 
+### Retrieving a token embedding
+
 To get the token embedding of a specific word ("raw word embedding"), use the `get_token_embedding()` method. It takes two arguments:
 
 - the index of the sentence (for "Le gatte bevono", we would enter `1`)
@@ -111,6 +115,8 @@ token_index = 2
 token_embedding = embedding_retriever.get_token_embedding(sentence_index,
                                                           token_index)
 ```
+
+### Retrieving the spaCy tokens
 
 Tip: you can find out the spaCy tokenisation by using the `embedding_retriever.tokens` property. This property contains a list of all spaCy tokens, the indices of which are interesting for use in the `get_hidden_state()` method. You should refer to the [spaCy documentation for the Token type](https://spacy.io/api/token) for more information, but the snippet below shows how to use the list of tokens to find the index of a specific word in the token list:
 
