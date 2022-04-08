@@ -74,7 +74,7 @@ embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ "Il gatto
 embedding_retriever = EmbeddingRetriever(bert_model, tokenizer, nlp, [ ["Il", "gatto", "beve"], ["Le", "gatte", "bevono"] ])
 ```
 
-### Retrieving a hidden state
+### Retrieving the hidden state for a word
 
 To get the hidden state of a specific word, use the `get_hidden_state()` method. It takes four arguments:
 
@@ -99,6 +99,27 @@ hidden_state = embedding_retriever.get_hidden_state(sentence_index,
                                                     token_index,
                                                     layers,
                                                     heads=heads)
+```
+
+### Retrieving the hidden state for a word piece
+
+To get the hidden state of a specific word piece, use the `get_word_piece_vector()` method. It takes three arguments:
+
+- the index of the hidden layer from which we want to retrieve the word piece vector
+	- `0`: embedding layer
+	- `1`-`12`: contextualised layers 1 through 12
+- the index of the sentence (for "Le gatte bevono", we would enter `1`)
+- the index of the word piece (for "le", we would enter `0`)
+	- see below how to acceses word piece indices
+
+```python
+layer_index = 4
+sentence_index = 1
+word_piece_index = 0
+
+hidden_state = embedding_retriever.get_hidden_state(layer_index,
+                                                    sentence_index,
+                                                    word_piece_index)
 ```
 
 ### Retrieving a token embedding
@@ -159,7 +180,19 @@ token_index = lemmas.index(self.lemma)
 
 ### Retrieving word pieces
 
-Tip: you can find out the textual word pieces by using the `embedding_retriever.word_pieces` property. This property contains a list of all word pieces in the input, the indices of which are interesting to cross-reference with attention distributions.
+You can find out which spaCy tokens correspond to which word pieces by using the `embedding_retriever.correspondence` property. This dict has the spaCy indices as its keys and a `list` of word piece indices as its values (in order).
+
+```python
+correspondence = embedding_retriever.correspondence[sentence_index]
+```
+
+You can find the input ids (the ids which code for a word piece) for a specific sentence using the `embedding_retriever.input_ids` property.
+
+```python
+input_ids = embedding_retriever.input_ids[sentence_index]
+```
+
+You can find out the textual word pieces by using the `embedding_retriever.word_pieces` property. This property contains a list of all word pieces in the input, the indices of which are interesting to cross-reference with attention distributions.
 
 ```python
 word_pieces = embedding_retriever.word_pieces[sentence_index]
