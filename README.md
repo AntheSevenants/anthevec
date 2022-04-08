@@ -116,6 +116,31 @@ token_embedding = embedding_retriever.get_token_embedding(sentence_index,
                                                           token_index)
 ```
 
+### Retrieving the attention distribution for a word
+
+If you are interested in getting the attention distribution for a specific word (averaged from its *word pieces*), you can do so using the `get_attention_weights()` method. It takes five arguments:
+
+- the index of the sentence (for "Le gatte bevono", we would enter `1`)
+- the index of the spaCy token (for "bevono", we would enter `2`)
+- the index of the hidden layer which we want to base our token vector on
+	- `1`-`12`: contextualised layers 1 through 12
+	- ⚠ the embedding layer has no attention, so you cannot ask for an attention distribution of layer 0!
+- the indices of the attention heads you want to get the attention distribution from (list)
+	- if you supply multiple heads, their attention values are averaged
+- (optional) whether you want to only get the attention distribution of the word pieces of which the spaCy token consists (bool=`True`)
+
+```python
+sentence_index = 1
+token_index = 2
+layer_index = 4
+heads = [0, 1, 2, 3]
+
+embedding_retriever.get_attention_weights(sentence_index,
+                                          token_index,
+                                          layer_index,
+                                          heads)
+```
+
 ### Retrieving the spaCy tokens
 
 Tip: you can find out the spaCy tokenisation by using the `embedding_retriever.tokens` property. This property contains a list of all spaCy tokens, the indices of which are interesting for use in the `get_hidden_state()` method. You should refer to the [spaCy documentation for the Token type](https://spacy.io/api/token) for more information, but the snippet below shows how to use the list of tokens to find the index of a specific word in the token list:
@@ -130,6 +155,14 @@ lemmas = list(map(lambda token: token.lemma_, embedding_retriever.tokens[sentenc
 #      "I be go to the supermarket" (lemma form)
 # lemma = go, index = 2 -> we find "going" in the token list
 token_index = lemmas.index(self.lemma)
+```
+
+### Retrieving word pieces
+
+Tip: you can find out the textual word pieces by using the `embedding_retriever.word_pieces` property. This property contains a list of all word pieces in the input, the indices of which are interesting to cross-reference with attention distributions.
+
+```python
+word_pieces = embedding_retriever.word_pieces[sentence_index]
 ```
 
 ## Future work
