@@ -113,13 +113,13 @@ To get the hidden state of a specific word piece, use the `get_word_piece_vector
 	- see below how to acceses word piece indices
 
 ```python
-layer_index = 4
 sentence_index = 1
 word_piece_index = 0
+layer_index = 4
 
-hidden_state = embedding_retriever.get_hidden_state(layer_index,
-                                                    sentence_index,
-                                                    word_piece_index)
+hidden_state = embedding_retriever.get_hidden_state(sentence_index,
+                                                    word_piece_index,
+                                                    layer_index)
 ```
 
 ### Retrieving a token embedding
