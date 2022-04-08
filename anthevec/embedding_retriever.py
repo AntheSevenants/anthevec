@@ -77,7 +77,11 @@ class EmbeddingRetriever:
             # to piece together a vector for this word.
             # Rather, we use the attention values to make a *weighted* average
             if heads is not None:
-                weights = self.get_attention_weights(sentence_index, word_index, layer_index, heads)
+                weights = self.get_attention_weights(sentence_index,
+                                                     word_index,
+                                                     layer_index,
+                                                     heads,
+                                                     word_distribution=True)
             
             # ...and average columnwise, so we get one average vector for this word
             word_vector = np.average(word_piece_vectors, 0, weights=weights)
@@ -90,33 +94,43 @@ class EmbeddingRetriever:
         layer_average = np.average(layer_vectors, 0)
         
         return layer_average
+
+    def get_attention_slice(self, layer_index, sentence_index, head_index, wordpiece_index):
+        if layer_index == 0:
+            raise Exception("Cannot get attention distribution for embedding layer.")
+
+        # How are attention weights structured?
+        # attentions = tuple
+        # every item in the tuple = attention for one layer => length of tuple = 12
+        # /!\ attention (haha): hidden_states[1] has attentions[0]
+        # hidden_states[0] has no attention (this is the embedding layer)
+        # each tuple item has the following shape:
+        # dim 1: sentence index
+        # dim 2: attention head index
+        # dim 3: word piece index
+        # dim 4: word piece index (for the attention distribution)
+                
+        # This "attention slice" is the attention range over ALL word pieces, FOR THIS PIECE ONLY
+        # It also only applies to THIS HEAD ONLY, and FOR THIS LAYER ONLY
+        attention_slice = self.attentions[layer_index - 1][sentence_index][head_index][wordpiece_index].tolist()
+
+        return attention_slice
     
-    def get_attention_weights(self, sentence_index, word_index, layer_index, heads):
+    def get_attention_weights(self, sentence_index, word_index, layer_index, heads, word_distribution=False):
         # We store the attention weights across heads here
         heads_attention_weights = [] 
         for head_index in heads:
             # We store the attention weights for word pieces here
             wordpieces_attention_weights = []
             for wordpiece_index in self.correspondence[sentence_index][word_index]:
-                # How are attention weights structured?
-                # attentions = tuple
-                # every item in the tuple = attention for one layer => length of tuple = 12
-                # /!\ attention (haha): hidden_states[1] has attentions[0]
-                # hidden_states[0] has no attention (this is the embedding layer)
+                attention_slice = self.get_attention_slice(layer_index, sentence_index, head_index, wordpiece_index)
 
-                # each tuple item has the following shape:
-                # dim 1: sentence index
-                # dim 2: attention head index
-                # dim 3: word piece index
-                # dim 4: word piece index (for the attention distribution)
-                        
-                # This "attention slice" is the attention range over ALL word pieces, FOR THIS PIECE ONLY
-                # It also only applies to THIS HEAD ONLY, and FOR THIS LAYER ONLY
-                attention_slice = self.attentions[layer_index - 1][sentence_index][head_index][wordpiece_index].tolist()
-                # We are only interested in the attention range between the wordpieces of our word
-                slice_begin = self.correspondence[sentence_index][word_index][0]
-                slice_end = self.correspondence[sentence_index][word_index][-1] + 1 # slice excludes the final index
-                attention_slice = attention_slice[slice_begin:slice_end]
+                # True if we are only interested in attention among word pieces belonging to this word
+                if word_distribution:
+                    # We are only interested in the attention range between the wordpieces of our word
+                    slice_begin = self.correspondence[sentence_index][word_index][0]
+                    slice_end = self.correspondence[sentence_index][word_index][-1] + 1 # slice excludes the final index
+                    attention_slice = attention_slice[slice_begin:slice_end]
                         
                 # We add the attention slice to the list 
                 wordpieces_attention_weights.append(attention_slice)
