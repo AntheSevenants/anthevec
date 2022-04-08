@@ -13,6 +13,8 @@ class EmbeddingRetriever:
         self.correspondence = tokenized_outputs["correspondence"]
         # Save tokens
         self.tokens = tokenized_outputs["spacy_tokens"]
+        # Save word pieces
+        self.word_pieces = tokenized_outputs["word_pieces"]
 
         # Input ids need to be saved in case we want to get the raw token embeddings
         self.input_ids = tokenized_outputs["tokenized_sentence"]["input_ids"]

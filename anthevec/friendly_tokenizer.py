@@ -24,10 +24,15 @@ class FriendlyTokenizer:
         
         # First, tokenize the string as normal using the supplied tokenizer
         tokenized_output = self.tokenizer(tokenizer_input_strings, return_tensors='pt', padding=True)
-                
+
         # Will hold all correspondences per sentence
         correspondence_list = []
+
+        # Will hold spaCy tokens
         spacy_tokens_list = []
+
+        # Will hold all word pieces in text form
+        word_pieces_list = []
         
         # We look over all sentences (sentence ids)
         for sentence_id in range(len(tokenized_output["input_ids"])):
@@ -83,8 +88,12 @@ class FriendlyTokenizer:
             
             correspondence_list.append(correspondence)
 
+            # Find out the word pieces corresponding to the word piece ids
+            word_pieces_list.append(self.tokenizer.convert_ids_to_tokens(tokenized_output["input_ids"][sentence_id]))
+
             
         # Return both the vector ids (which we will need for inference) as well as the correspondence dict
         return { "tokenized_sentence": tokenized_output,
+                 "word_pieces": word_pieces_list,
                  "correspondence": correspondence_list,
                  "spacy_tokens": spacy_tokens_list }
