@@ -54,17 +54,8 @@ class EmbeddingRetriever:
                                         
             # For each of the word pieces of which this word consists...
             for wordpiece_index in self.correspondence[sentence_index][word_index]:
-                # Define the hidden state, and detach it so it becomes a numpy array
-                hidden = self.hidden_states[layer_index].detach().numpy()
-                # The hidden state is actually a *tensor* (three dimensions), so we need to reshape
-                # it so it becomes a two-dimensional matrix. The first dimension is the sentence index,
-                # so no actual information is lost.                
-                flat_hidden_state = hidden[sentence_index].reshape((hidden.shape[1], hidden.shape[2]))
-                
-                # We slice the matrix and only get the row that corresponds to the current word piece
-                word_piece_vector = flat_hidden_state[wordpiece_index]
-                # Then, we convert it into a simple vector...
-                word_piece_vector = word_piece_vector.reshape(hidden.shape[2])
+                # ...we retrieve the vector for this word piece
+                word_piece_vector = self.get_word_piece_vector(layer_index, sentence_index, wordpiece_index)
                 # ...and add it to the list of word pieces for this word
                 word_piece_vectors.append(word_piece_vector)
                           
@@ -96,6 +87,22 @@ class EmbeddingRetriever:
         layer_average = np.average(layer_vectors, 0)
         
         return layer_average
+
+    def get_word_piece_vector(self, layer_index, sentence_index, wordpiece_index):
+        # Define the hidden state, and detach it so it becomes a numpy array
+        hidden = self.hidden_states[layer_index].detach().numpy()
+        # The hidden state is actually a *tensor* (three dimensions), so we need to reshape
+        # it so it becomes a two-dimensional matrix. The first dimension is the sentence index,
+        # so no actual information is lost.                
+        flat_hidden_state = hidden[sentence_index].reshape((hidden.shape[1], hidden.shape[2]))
+        
+        # We slice the matrix and only get the row that corresponds to the current word piece
+        word_piece_vector = flat_hidden_state[wordpiece_index]
+        # Then, we convert it into a simple vector...
+        word_piece_vector = word_piece_vector.reshape(hidden.shape[2])
+
+        # All done
+        return word_piece_vector
 
     def get_attention_slice(self, layer_index, sentence_index, head_index, wordpiece_index):
         if layer_index == 0:
