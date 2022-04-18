@@ -162,6 +162,20 @@ embedding_retriever.get_attention_weights(sentence_index,
                                           heads)
 ```
 
+### Retrieving the token index of a word piece
+
+If you want to know what token a word piece belongs to, you can use the `get_token_index_from_word_piece_index()` method. It takes two arguments:
+
+- the index of the sentence (for "Le gatte bevono", we would enter `1`)
+- the index of the word piece
+
+```python
+embedding_retriever.get_token_index_from_word_piece_index(sentence_index,
+                                                          4) # for word piece index = 4
+```
+
+This will return the index of the token to which the word piece with the given index corresponds. If the word piece index is not found, a `ValueError` exception is raised.
+
 ### Retrieving the spaCy tokens
 
 Tip: you can find out the spaCy tokenisation by using the `embedding_retriever.tokens` property. This property contains a list of all spaCy tokens, the indices of which are interesting for use in the `get_hidden_state()` method. You should refer to the [spaCy documentation for the Token type](https://spacy.io/api/token) for more information, but the snippet below shows how to use the list of tokens to find the index of a specific word in the token list:
