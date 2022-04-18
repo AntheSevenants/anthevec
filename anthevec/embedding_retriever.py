@@ -188,3 +188,10 @@ class EmbeddingRetriever:
         word_vector = np.average(word_piece_vectors, 0)
 
         return word_vector
+
+    def get_token_index_from_word_piece_index(self, sentence_index, wordpiece_index):
+        for token_index in self.correspondence[sentence_index]:
+            if wordpiece_index in self.correspondence[sentence_index][token_index]:
+                return token_index
+
+        raise ValueError(f"No word piece with index {wordpiece_index} in sentence with index {sentence_index}")
