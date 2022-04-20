@@ -3,7 +3,7 @@ from .friendly_tokenizer import FriendlyTokenizer
 
 # EmbeddingRetriever holds all embeddings for a given sentence
 class EmbeddingRetriever:
-    def __init__(self, model, tokenizer, nlp, input_sentences):
+    def __init__(self, model, tokenizer, nlp, input_sentences, mask_special_tokens=False):
         # Initialise the tokeniser
         self.friendly_tokenizer = FriendlyTokenizer(tokenizer, nlp)
         # Tokenise the input sentence
@@ -23,8 +23,12 @@ class EmbeddingRetriever:
         embedding_matrix = model.get_input_embeddings()
         self.token_embeddings = embedding_matrix(self.input_ids).detach().numpy()
 
+        attention_mask = None
+        if mask_special_tokens:
+            attention_mask = [0] + [1] * (len(self.input_ids) - 2) + [0]
+
         # Compute the hidden states
-        outputs = model(self.input_ids)
+        outputs = model(self.input_ids, attention_mask=attention_mask)
         # Save these hidden states separately
         self.hidden_states = outputs.hidden_states
         self.attentions = outputs.attentions
