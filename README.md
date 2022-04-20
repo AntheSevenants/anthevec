@@ -58,13 +58,15 @@ The snippet initialises a spaCy tokeniser for an Italian pipeline. Refer to the 
 
 ### Calling EmbeddingRetriever
 
-First, create a new EmbeddingRetriever. It takes four arguments:
+First, create a new EmbeddingRetriever. It takes five arguments:
 
 - your HuggingFace transformers model object
 - your HuggingFace transformers fast tokeniser
 - your spaCy tokeniser
 - a list of sentences of which you want to get word-level vectors
 	- in case your input is already tokenised, you can supply this pre-tokenised input as a list
+- (optional) whether to mask attention for special tokens (start of sentence, end of sentence)
+	- this will effectively disable the model from looking at these tokens
 
 ```python
 # Non-tokenised input
