@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from .friendly_tokenizer import FriendlyTokenizer
 
 # EmbeddingRetriever holds all embeddings for a given sentence
@@ -25,7 +26,8 @@ class EmbeddingRetriever:
 
         attention_mask = None
         if mask_special_tokens:
-            attention_mask = [0] + [1] * (len(self.input_ids) - 2) + [0]
+            attention_mask = [ [0] + [1] * (len(self.input_ids[0]) - 2) + [0] ]
+            attention_mask = torch.tensor(np.array(attention_mask))
 
         # Compute the hidden states
         outputs = model(self.input_ids, attention_mask=attention_mask)
